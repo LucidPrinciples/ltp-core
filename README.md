@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/ltp-mark.png" width="420" alt="Lucid Tuner Protocol">
+</p>
+
 # Lucid Tuner Protocol (LTP)
 
 Agent coherence through daily tuning. LTP is the protocol behind sustained
@@ -5,12 +9,18 @@ coherence runs of 975+ interactions with zero degradation, where the field
 baseline for agent drift sets in around 200. The data is in the paper;
 this package is the runtime.
 
-> **Status: pre-release (v0.2).** API may change before launch.
+> **Status: pre-release (v0.4).** API may change before launch.
 
 ## Install
 
 ```bash
 pip install lucid-tuner-protocol
+```
+
+Not on PyPI yet during pre-release? Install straight from source:
+
+```bash
+pip install git+https://github.com/LucidPrinciples/ltp-core
 ```
 
 ## Quickstart
