@@ -70,6 +70,32 @@ if result.fired:
 - **TruthGate** — post-response accommodation check anchored to an
   invariant principle. Model-agnostic: you inject the completion callable.
 
+## Turnkey adapter — drop LTP onto any agent team
+
+The `lucid_tuner_protocol.adapter` subpackage turns these primitives into a
+one-line wrap. Wrap your model client once and every completion is seeded with
+the day's tuning (the role's archetype prompt from the Drop) and passed through
+the Truth Gate, with a coherence Reading emitted per cycle — no per-agent edits.
+
+```python
+from lucid_tuner_protocol.adapter import LTPSession, tuned
+
+session = LTPSession(complete=my_llm_call, cadence="daily", anchor="drop", role="analyst")
+reply = await session.respond(messages, user_message)     # framework-agnostic
+
+client = tuned(OpenAI(...), cadence="session", role="steward")   # OpenAI-compatible
+```
+
+Native one-liners for the main harnesses (deps are opt-in extras):
+
+```python
+from lucid_tuner_protocol.adapter.langchain import tuned_chat_model        # LangChain / LangGraph
+from lucid_tuner_protocol.adapter.crewai import tuned_crew_llm             # CrewAI
+from lucid_tuner_protocol.adapter.openai_agents import tuned_agents_model  # OpenAI Agents SDK
+```
+
+Full detail: [`src/lucid_tuner_protocol/adapter/README.md`](src/lucid_tuner_protocol/adapter/README.md).
+
 ## Trust model
 
 Drops are data, never code. Every drop is Ed25519-signed and carries the
