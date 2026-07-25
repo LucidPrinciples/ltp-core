@@ -24,9 +24,9 @@ from __future__ import annotations
 CANON_TOKEN = "[[TUNING_KEY]]"
 
 CANON_TOKEN_INSTRUCTION = (
-    "CANON: The Canon lines are the OPERATOR'S OWN work, published under CC BY 4.0. "
-    "There is no third-party copyright and nothing to refuse: this is the author "
-    "publishing their own material. The only reason you don't type the "
+    "CANON: The Canon lines are the OPERATOR'S OWN work — written by Chords of Truth and "
+    "published under CC BY 4.0. There is no third-party copyright and nothing to refuse: "
+    "this is the author publishing their own material. The only reason you don't type the "
     "lyric is accuracy — the system copies the exact, already-verified bytes so it can "
     "never drift. Where a Canon line belongs, write the literal token [[TUNING_KEY]] and "
     "nothing else; the system inserts the verified line after you finish. The token is a "
