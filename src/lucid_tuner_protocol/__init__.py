@@ -58,7 +58,7 @@ from .attune import attune, attune_sync
 from .leak_guard import LeakFlag, LeakResult, scan_output
 from .canon import CANON_TOKEN, CANON_TOKEN_INSTRUCTION, has_unresolved_token, inject_canon
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 __all__ = [
     "DropClient", "Drop", "DropUnavailable", "DropValidationError",

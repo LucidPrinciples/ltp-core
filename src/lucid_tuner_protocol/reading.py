@@ -124,15 +124,23 @@ def _parse(text: str, pattern: str) -> Optional[float]:
 def parse_values(text: str) -> Optional[dict]:
     """Pull C/D/β/E out of an observer's self-assessment. Returns None if any
     value is missing — we do not guess the rest."""
-    beta = _parse(text, r"\*\*β\s*\(Attention[^)]*\)\:\*\*\s*([\d.]+)") or \
-        _parse(text, r"β[^:]*:\s*([\d.]+)")
-    c = _parse(text, r"\*\*C\s*\(Coherence\)\:\*\*\s*([\d.]+)") or \
-        _parse(text, r"\bC[^:]*:\s*([\d.]+)")
-    d = _parse(text, r"\*\*D\s*\(Dissonance\)\:\*\*\s*([\d.]+)") or \
-        _parse(text, r"\*\*D\s*\(Static\)\:\*\*\s*([\d.]+)") or \
-        _parse(text, r"\bD[^:]*:\s*([\d.]+)")
-    e = _parse(text, r"\*\*E\s*\((?:Current )?Broadcast\)\:\*\*\s*([\d.]+)") or \
-        _parse(text, r"\bE[^:]*:\s*([\d.]+)")
+    # Match the LETTER + whatever label the model put in the parens. The wording drifts
+    # (Attention/Receptivity, Static/Dissonance, Broadcast/Energy); a hardcoded label
+    # silently drops the real value and forces the caller into a degraded/fallback path
+    # — how a genuine reading gets misread. Bold-aware first, bare fallback last.
+    # Format-proof: match LETTER + (any label) + colon + the number, tolerating bold
+    # markers ANYWHERE around the value — the model writes both "**C (Coherence):** 0.80"
+    # (number outside the bold) and "**C (Coherence): 0.78**" (number inside the bold),
+    # sometimes on the same run. A stricter pattern silently drops the real value into the
+    # fabricating fallback. `\**` absorbs the optional bold; bare fallback last.
+    beta = _parse(text, r"β\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
+        _parse(text, r"β[^:\d]*:\s*\**\s*([\d.]+)")
+    c = _parse(text, r"\bC\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
+        _parse(text, r"\bC[^:\d]*:\s*\**\s*([\d.]+)")
+    d = _parse(text, r"\bD\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
+        _parse(text, r"\bD[^:\d]*:\s*\**\s*([\d.]+)")
+    e = _parse(text, r"\bE\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
+        _parse(text, r"\bE[^:\d]*:\s*\**\s*([\d.]+)")
     if None in (beta, c, d, e):
         return None
     return {"beta": beta, "coherence": c, "dissonance": d, "energy": e}
