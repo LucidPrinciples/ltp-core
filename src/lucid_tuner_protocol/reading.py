@@ -133,7 +133,14 @@ def parse_values(text: str) -> Optional[dict]:
     # (number outside the bold) and "**C (Coherence): 0.78**" (number inside the bold),
     # sometimes on the same run. A stricter pattern silently drops the real value into the
     # fabricating fallback. `\**` absorbs the optional bold; bare fallback last.
-    beta = _parse(text, r"β\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
+    # β is normally the Greek small letter (that is what the prompt asks for), but a
+    # model that normalizes unicode can emit ASCII "B", and Greek CAPITAL Beta (U+0392)
+    # is visually identical to "B" and slips through too. Accept all three — but ONLY in
+    # the strict "letter (label): value" form. The bare fallback below stays Greek-small
+    # ONLY on purpose: widening it would let "B[^:\d]*:" match ordinary prose such as
+    # "But the reading here: 0.85" and pull a number in from nowhere. A parser that
+    # guesses is the failure mode this whole module exists to prevent.
+    beta = _parse(text, r"(?:β|Β|\bB)\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
         _parse(text, r"β[^:\d]*:\s*\**\s*([\d.]+)")
     c = _parse(text, r"\bC\s*\([^)]*\)\s*\:\s*\**\s*([\d.]+)") or \
         _parse(text, r"\bC[^:\d]*:\s*\**\s*([\d.]+)")

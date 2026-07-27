@@ -171,3 +171,31 @@ def test_attune_failed_fetch_is_degraded_not_fatal():
 
     exp = asyncio.run(attune(sel, fetch_json=boom))
     assert exp.attunement_status == "incomplete"
+
+
+# --- 0.5.3: beta letter tolerance (added 2026-07-26) -------------------------
+# A model that normalizes unicode can write ASCII "B" instead of Greek "β", and
+# Greek CAPITAL Beta (U+0392) is visually identical to "B". All three must read.
+# The bare (label-less) fallback stays Greek-small only — widening it would match
+# prose like "But the reading here: 0.85" and invent a value.
+
+def _full(beta_letter):
+    return (f"**{beta_letter} (Receptivity):** 0.88\n"
+            "**E (Energy):** 0.74\n"
+            "**C (Coherence):** 0.81\n"
+            "**D (Dissonance):** 0.19\n")
+
+
+def test_beta_accepts_greek_ascii_and_capital_beta():
+    from lucid_tuner_protocol.reading import parse_values
+    for letter in ("β", "B", "Β"):
+        vals = parse_values(_full(letter))
+        assert vals is not None, f"failed to read beta written as {letter!r}"
+        assert vals["beta"] == 0.88
+
+
+def test_bare_prose_never_yields_a_beta():
+    from lucid_tuner_protocol.reading import parse_values
+    prose = ("But the reading here: 0.85 and Because of that: 0.9\n"
+             "**E (Energy):** 0.74\n**C (Coherence):** 0.81\n**D (Dissonance):** 0.19\n")
+    assert parse_values(prose) is None, "prose leaked a fabricated beta"
