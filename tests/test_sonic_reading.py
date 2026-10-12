@@ -49,6 +49,26 @@ def test_decode_frames_real_length():
     assert all(0.0 <= v <= 1.0 for v in env)
 
 
+def test_decode_frames_interleaved_takes_energy_column():
+    # Real Echo analysis files carry 6 values per frame (len == 6 * frameCount).
+    # Column 0 is energy. Reading raw bytes as one-per-frame scrambled every arc.
+    import base64
+    n = 300
+    energy = [(i * 7) % 256 for i in range(n)]
+    raw = bytearray()
+    for i in range(n):
+        raw += bytes([energy[i], 255 - energy[i], 3, 200, 9, (i * 13) % 256])
+    env = ltp.decode_frames(base64.b64encode(bytes(raw)).decode(), n)
+    assert len(env) == n
+    assert env == [e / 255.0 for e in energy]
+
+
+def test_decode_frames_single_column_unchanged():
+    import base64
+    vals = bytes([0, 64, 128, 255, 32])
+    assert ltp.decode_frames(base64.b64encode(vals).decode(), 5) == [v / 255.0 for v in vals]
+
+
 def test_decode_frames_missing_is_empty():
     assert ltp.decode_frames(None) == []
     assert ltp.decode_frames("") == []

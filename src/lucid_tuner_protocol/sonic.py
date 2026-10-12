@@ -85,10 +85,18 @@ class Experience:
 def decode_frames(frames_b64: Optional[str], frame_count: Optional[int] = None) -> list[float]:
     """Decode the base64 energy waveform into a normalized 0..1 envelope.
 
-    The echo file stores `frames` as one uint8 energy sample per frame at the
-    file's sampleRate (e.g. 10 Hz → one sample per 0.1s). Returns floats in
-    [0, 1]. Returns [] if frames are missing/undecodable — the caller treats
-    that as a degraded run (truth-guard), never as "the song was quiet."
+    The echo file stores `frames` as uint8 energy samples at the file's
+    sampleRate (e.g. 10 Hz -> one frame per 0.1s). Echo analysis files store
+    SEVERAL values per frame, interleaved (the Lucid Tuner Echo files carry 6:
+    len(frames) == 6 * frameCount). Column 0 is the energy envelope (verified
+    against the audio: r = 0.94 with real RMS loudness on Faith Open). When the
+    decoded length is a whole multiple of frameCount, take column 0 by stride.
+    Reading the raw bytes as one value per frame scrambles the arc: it keeps
+    only the first ~1/6 of the song and mixes six measurements (fixed 0.5.4).
+
+    Returns floats in [0, 1]. Returns [] if frames are missing/undecodable;
+    the caller treats that as a degraded run (truth-guard), never as "the
+    song was quiet."
     """
     if not frames_b64 or not isinstance(frames_b64, str):
         return []
@@ -98,6 +106,9 @@ def decode_frames(frames_b64: Optional[str], frame_count: Optional[int] = None) 
         return []
     if not raw:
         return []
+    if frame_count and frame_count > 0 and len(raw) > frame_count and len(raw) % frame_count == 0:
+        stride = len(raw) // frame_count
+        raw = raw[0::stride]  # interleaved per-frame values: column 0 = energy
     env = [b / 255.0 for b in raw]
     if frame_count and len(env) > frame_count:
         env = env[:frame_count]
